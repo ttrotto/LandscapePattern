@@ -83,6 +83,7 @@ library(terra)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+library(tidyterra)
 library(patchwork)
 
 fires <- list.files('data', pattern = 'fire', full.names = T)
@@ -91,20 +92,16 @@ fires <- list.files('data', pattern = 'fire', full.names = T)
 flagged <- lapply(fires, function(f) {
   r <- rast(f)
   NAflag(r) <- 99
-  crs(r) <- 'epsg:4326'  # manually assing CRS because originally missing
+  crs(r) <- 'epsg:32612'  # manually assing CRS because originally missing
+  levels(r) <- c("nodata", "unburned", "burned")
   return(r)
 })
 
 # plot
-plots <- lapply(flagged, function(f) {
-  ggplot() +
-  geom_spatraster(data = f)
-})
-(plots[[1]] + plots[[2]]) / 
-(plots[[3]] + plots[[4]]) / 
-(plots[[5]] + plots[[6]]) / 
-(plots[[7]] + plots[[8]]) / 
-(plots[[9]] + plots[[10]])
+ggplot() +
+  geom_spatraster(data = rast(flagged)) +
+  facet_wrap(~lyr, ncol = 2) +
+  scale_fill_manual(values = c('unburned' = '#bfbc78', 'burned' = '#9f0a1a', 'modata' = '#ababab'))
 #
 #
 #

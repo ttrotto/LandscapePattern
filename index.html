@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Tommaso Trotto &amp; Jen Baron (tommaso.trotto@ubc.ca)">
-<meta name="dcterms.date" content="2024-06-24">
+<meta name="dcterms.date" content="2024-10-19">
 
-<title>GEM500: Carbon and Biomass estimation</title>
+<title>GEM500: Estimating Landscape Patterns</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -151,7 +151,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">GEM500: Carbon and Biomass estimation</h1>
+<h1 class="title">GEM500: Estimating Landscape Patterns</h1>
 </div>
 
 
@@ -168,7 +168,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">June 24, 2024</p>
+      <p class="date">October 19, 2024</p>
     </div>
   </div>
   
@@ -264,19 +264,15 @@ Figure&nbsp;2: Illustration of 2 neighboring rules: (left) 4-neighbors, (right) 
 <span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  r <span class="ot">&lt;-</span> <span class="fu">rast</span>(f)</span>
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">NAflag</span>(r) <span class="ot">&lt;-</span> <span class="dv">99</span></span>
 <span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">crs</span>(r) <span class="ot">&lt;-</span> <span class="st">'epsg:32612'</span>  <span class="co"># manually assing CRS because originally missing</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(r)</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co"># plot</span></span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>plots <span class="ot">&lt;-</span> <span class="fu">lapply</span>(flagged, <span class="cf">function</span>(f) {</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_spatraster</span>(<span class="at">data =</span> f)</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>(plots[[<span class="dv">1</span>]] <span class="sc">+</span> plots[[<span class="dv">2</span>]]) <span class="sc">/</span> </span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>(plots[[<span class="dv">3</span>]] <span class="sc">+</span> plots[[<span class="dv">4</span>]]) <span class="sc">/</span> </span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>(plots[[<span class="dv">5</span>]] <span class="sc">+</span> plots[[<span class="dv">6</span>]]) <span class="sc">/</span> </span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>(plots[[<span class="dv">7</span>]] <span class="sc">+</span> plots[[<span class="dv">8</span>]]) <span class="sc">/</span> </span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>(plots[[<span class="dv">9</span>]] <span class="sc">+</span> plots[[<span class="dv">10</span>]])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">levels</span>(r) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"nodata"</span>, <span class="st">"unburned"</span>, <span class="st">"burned"</span>)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(r)</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="co"># plot</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_spatraster</span>(<span class="at">data =</span> <span class="fu">rast</span>(flagged)) <span class="sc">+</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>lyr, <span class="at">ncol =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">'unburned'</span> <span class="ot">=</span> <span class="st">'#c1be7a'</span>, <span class="st">'burned'</span> <span class="ot">=</span> <span class="st">'#9f0a1a'</span>, <span class="st">'modata'</span> <span class="ot">=</span> <span class="st">'#ababab'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div id="fig-fires" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -304,7 +300,10 @@ resolution  : 30, 30  (x, y)
 extent      : 0, 4950, 0, 4950  (xmin, xmax, ymin, ymax)
 coord. ref. : WGS 84 / UTM zone 12N (EPSG:32612) 
 source      : fire_1_high.tif 
-name        : fire_1_high </code></pre>
+categories  : category 
+name        : fire_1_high 
+min value   :          NA 
+max value   :          NA </code></pre>
 </div>
 </div>
 <p>Note how we have 2 classes and a “nodata” class. Class 1 represents unburned areas and class 2 represents burned areas. Class 99 is our nodata class. Now that we have some basic information on the landscape, we should check that everything is right. That is, check that the coordinate reference system (CRS) is right, and that we have the right number of classes. This is pretty straighforward. You would notice that the rasters have a CRS = EPSG:4326. In python you can check the CRS using <code>src.spatial_ref</code>. If the field is populated, explore it. In R, the <code>landscapemetrics</code> package offers the <code>check_landscape</code> function. So just type <code>check_landscape(flagged[[1]])</code> to see if the first raster is ready to go.</p>
@@ -318,7 +317,7 @@ name        : fire_1_high </code></pre>
 1     1 projected     m integer         2  ✔</code></pre>
 </div>
 </div>
-<p>We see that the rasters are ready to go!</p>
+<p>We see that the raster is ready to go!</p>
 <section id="list-available-metrics" class="level2">
 <h2 class="anchored" data-anchor-id="list-available-metrics">List available metrics</h2>
 <p>The <code>landscapemetrics</code> package includes a function to show you all available metrics and filter them according to the characteristics of the landscape they conceptually describe. For help, have a look at the help page of the <code>list_lsm()</code> function. You would see the acronym and full name of all the available metrics, the type, and the level they are applied to. For example. we can calculate metrics at the <code>patch</code>-, <code>class</code>-, or <code>landscape</code>-level. The syntax is pretty simple. All metrics start with <code>lsm_</code>, followed by the level (<code>p/c/l</code>), and the function name. Some of these metrics have other parameters that can be passed (e.g.&nbsp;neighboring rule). In some cases, legacy parameters are carried forward, so you will end up with metrics that have both a <code>neighbors</code> and <code>direction</code> parameters. They mean the same thing, but for legacy purposes they are retained to this point. In case, give the same value to both to be sure they are interpreted as you would expect.</p>
