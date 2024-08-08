@@ -1,0 +1,298 @@
+---
+title: "GEM500: Carbon and Biomass estimation"
+author: "Tommaso Trotto & Jen Baron (tommaso.trotto@ubc.ca)"
+affiliation: "University of British Columbia, Department of Forest Resource Management"
+date: "06/24/2024"
+bibliography: references.bib
+format:
+  html:
+    page-layout: full
+    code-fold: true
+    theme: flatly
+    toc: true
+    toc-float: true
+    toc-location: left
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE)
+```
+
+# Introducing landscape patterns
+
+Landscape patterns and their quantification has received considerable attention since the early 1980's. The quantification of landscape patterns came from the need to objectively describe landscapes that humans assess subjectively as, for example, "clumpy", "dispersed", "random", "diverse", "fragmented", or "connected" (@gergel2017). Quantification of pattern is fundamental to many of the relationships we seek to understand in landscape ecology, because they emphasize the interactions among spatial patterns and ecological processes. Therefore, a basic familiarity with the most commonly used ways to quantify these patterns is extremely important (@gergel2017). In general, we refer to these as **landscape metrics**. Landscape metrics allow us to objectively describe landscape patterns based on certain observable features, which enable analyses such as:
+
+-   Assessment of landscape pattern changes over time
+-   Making future predictions regarding landscape pattern changes
+-   Determining if two landscape differ based on their patterns
+-   Evaluating alternative lands management strategies in terms of the landscape patterns that may result
+-   Determining if a certain pattern is characteristic of a specific disturbance
+
+In particular, in this lab we will take advantage of both R- and python-based libraries to objectively quantify landscape patterns to answer specific research questions. Both these libraries are inspired by FRAGSTATS (@mcgarigal1995). More in details, we will explore the use of landscape metics to compare spatial patterns created by 5 different fires (@fig-fires) using landscape metrics. Furthermore, we will focus on comparing spatial patterns of fires of different severity to see how they produce different spatial responses on the landscape.
+
+Note that one core assumption that these and other methods take is that the input data source is a 2-dimensional (2D) **categorical raster**. A categorical raster is a raster product that describes homogeneous landscape features with integer numbers (@fig-lands). This assumption is fundamental for the calculation of landscape metrics as they all base their equations on individual pixels. We will explore this aspect more in depth later on. However, it is often the case that you'd need to convert your **continuous raster** product into a categorical raster. The simplest way to do it is to define a threshold value where pixels above or below such threshold are assing a class or another. Conversion is a crucial step in the calculation of landscape patterns, because the selection of the threshold value would affect how the quantification of the landscape patterns of interest.
+
+![Simulated landscapes representing 3 categories/classes (urban, agriculture, and forest) and their change over time.](data/sim_lands.png){#fig-lands}
+
+Another important concept to understand is **neighboring**. When working with landscape metrics, individual pixels and their neighbors are both important. Take for example @fig-nn, we are working with the central pixel marked with a cross. How do we define a uniform patch or region? Do we consider only the pixels north-south and west-east, or do we also consider the diagonals? This is important because by changing the neighboring rule we change how patches, and therefore metrics, are interpreted and calculated. For example, using a 4-neighboring rule, the patch would have an areas of 5, whereas using an 8-neighboring rule it would have an areas of 9!
+
+![Illustration of 2 neighboring rules: (left) 4-neighbors, (right) 8-neighbors.](data/neighbors.png){#fig-nn}
+
+# Exploring basic landscape metrics
+
+Here, we will calculate landscape metrics from a categorical fire severity map using both R- and python-based solution. In R we are using the `landscapemetrics` library (@hesselbarth2019), in python `pylandstats` (@bosch2019). Our objective is to describe landscape patterns created by 5 fire events of varying severity in Greater Yellowstone. Let's start by importing libraries and data. In the following chunks, only the R code is evaluated because is more user-friendly than the python alternative as of today.
+
+``` {python lands}
+#| eval: false
+
+import numpy as np
+import xarray as xr
+import pandas as pd
+import rioxarray
+import pylandstats as pls
+from glob import glob
+from functools import reduce
+import matplotlib.pyplot as plt
+
+# import fire rasters
+fires = sorted(glob('data/fire*.tif'))
+lands = [pls.Landscape(fire, nodata=99, neighborhood_rule=8) for fire in fires]
+
+# plot
+fig, axes = plt.subplots(5, 2, figsize=(10, 15))
+for i, fire in enumerate(fires):
+    with rioxarray.open_rasterio(fire).squeeze() as src:
+        src = xr.where(src == 99, np.nan, src)  # fix plotting issues with pylandstats
+        src.plot.imshow(ax=axes.flat[i])
+plt.tight_layout()
+plt.show()
+
+# explore 1 raster data
+src
+```
+
+``` {r rlands}
+#| warning: false
+#| fig-cap: "Map of 5 fires in Greater Yellowstone of different severity"
+#| label: fig-fires
+#| fig-width: 8
+#| fig-height: 12
+
+library(landscapemetrics)
+library(terra)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(tidyterra)
+library(patchwork)
+
+fires <- list.files('data', pattern = 'fire', full.names = T)
+
+# set NAflag
+flagged <- lapply(fires, function(f) {
+  r <- rast(f)
+  NAflag(r) <- 99
+  crs(r) <- 'epsg:32612'  # manually assing CRS because originally missing
+  return(r)
+})
+
+# plot
+plots <- lapply(flagged, function(f) {
+  ggplot() +
+  geom_spatraster(data = f)
+})
+(plots[[1]] + plots[[2]]) / 
+(plots[[3]] + plots[[4]]) / 
+(plots[[5]] + plots[[6]]) / 
+(plots[[7]] + plots[[8]]) / 
+(plots[[9]] + plots[[10]])
+```
+
+``` {r explore}
+# explore 1 raster data
+flagged[[1]]
+```
+
+Note how we have 2 classes and a "nodata" class. Class 1 represents unburned areas and class 2 represents burned areas. Class 99 is our nodata class. Now that we have some basic information on the landscape, we should check that everything is right. That is, check that the coordinate reference system (CRS) is right, and that we have the right number of classes. This is pretty straighforward. You would notice that the rasters have a CRS = EPSG:4326. In python you can check the CRS using `src.spatial_ref`. If the field is populated, explore it. In R, the `landscapemetrics` package offers the `check_landscape` function. So just type `check_landscape(flagged[[1]])` to see if the first raster is ready to go.
+
+``` {r check_crs}
+check_landscape(flagged[[1]])
+```
+
+We see that the raster is ready to go!
+
+## List available metrics
+
+The `landscapemetrics` package includes a function to show you all available metrics and filter them according to the characteristics of the landscape they conceptually describe. For help, have a look at the help page of the `list_lsm()` function. You would see the acronym and full name of all the available metrics, the type, and the level they are applied to. For example. we can calculate metrics at the `patch`-, `class`-, or `landscape`-level. The syntax is pretty simple. All metrics start with `lsm_`, followed by the level (`p/c/l`), and the function name. Some of these metrics have other parameters that can be passed (e.g. neighboring rule). In some cases, legacy parameters are carried forward, so you will end up with metrics that have both a `neighbors` and `direction` parameters. They mean the same thing, but for legacy purposes they are retained to this point. In case, give the same value to both to be sure they are interpreted as you would expect.
+
+With `pylandstats` is a bit more tricky. You'd need to explore the online documentation or the properties of a `Landscape` object as it is generated using `landscape = pls.Landscape()`. By using `dir(landscape)` you can see the list of available properties associated with the object. However, for a more detailed description, refer to the [online documentation](https://pylandstats.readthedocs.io/en/v2.3.0/index.html). 
+
+## Metric calculation
+
+Let's explore how to actually use the libraries. A metric of interest for fire is `area`. 
+
+``` {python area}
+#| eval: false
+
+lands[0].area()
+```
+
+```  {r rarea}
+lsm_p_area(flagged[[1]], directions = 8)
+```
+
+Here we see that the functions both output the area associated to each patch in the first landscape. In total, we have 115 patches identified using a 8-neighboring rule. Note that the python output is 0-indexed, whereas the R output is 1-indexed. The area values are unitless, so care must be taken when interpreting these metrics. We also see that there is a `class` column. This matches the length of our classes (1-2), so within each class, we have a certain number of patches. In particular, 49 patches for class 1 and 66 for class 2.
+ 
+A great feature about the R library is that all metrics are returned in the same format. You will always have a tibble with the same number of columns and naming such that you can easily combine the output of different metrics into a single dataframe. In python, it's a bit more complicated to do as values are either returned as dataframes or numbers.
+
+What if we wanted to extract multiple metrics at a time. That's another easy task! We can use the `calculate_lsm` function in the `landscapemetrics` package to calculate multiple metrics for a specific "level" and "type" (as defined by `lsm_list()`) or we can specify the `what` parameter for an ad-hoc list of metrics of interest.
+
+``` {r rmultiple}
+# all metrics by level and type
+patch_level <- calculate_lsm(landscape = flagged[[1]], 
+                             level = "patch", type = "area and edge metric")
+patch_level
+
+# metrics of interest
+multiple_metrics <- calculate_lsm(landscape = flagged[[1]], 
+                                  what = c("lsm_p_area", "lsm_p_para"))
+multiple_metrics
+```
+
+With a similar logic, you can calculate a list of metrics of interest using the `pylandstats` by iteratively calling the methods of the `Landscape` object.
+
+``` {python multiple}
+#| eval: false
+
+# list of metrics of interest
+moi = ['area', 'perimeter', 'perimeter_area_ratio']
+
+multiple_metrics = [getattr(lands[0], metric)() for metric in moi]
+reduce(lambda x, y: pd.merge(x, y), multiple_metrics)  # merge because it's the same type and index
+```
+
+Note that we have calculated all patch-level metrics. If we wanted to "level-up" and calculate class-level metrics, sometimes it's as easy as applying an aggregation function to patch-level metrics. For example the class-level area is given by the mean of the patch-level areas per class:
+
+``` {python aggreg}
+#| eval: false
+
+area_patch = lands[0].area()['area']
+area_class = lands[0].area_mn()
+```
+
+When calling `np.allclose(np.mean(area_patch), area_class)` we get `True`! In other cases the aggregation is a bit more tricky, but for class- and landscape-level metrics it's always an aggregation of lower-level metrics.
+
+## Work on your own
+
+Now that you have a sense of how landscape metrics work and how they can be calculated, it's your time to explore some of these metrics in more depth! You are now tasked to quantify fire patterns using a series of landscape metrics we provide in addition to a set of metrics *of your choice*. Choosing which metrics to use could be a daunting task, but remember that a long list of metrics may result redundant as many metrics report values that are more or less correlated with each other. For example, a large patch is also likely to have a large perimeter, therefore you would select either one or another, not both. Otherwise, you can work with metrics that summarize the relationship between the two, for example using the perimeter-to-area ratio. 
+
+We think that a good initial approach to quantify spatial patterns of fire is by looking at the shape of the burned patches, their number, size, the proportion of the landscape they occupy, and how they are distributed in relation to one another (e.g. clumped/sparse). In particular, we are interested in looking at the following metrics (using the `landscapemetrics` package as reference):
+
+-   <ins>Landscape-level metrics</ins>: edge density (ED) and contagion (CONTAG)
+-   <ins>Class-level metrics</ins>: proportion of landscape occupied (PLAND), number of patches (NP), and mean patch size (AREA_MN)
+
+To the list of this metrics, we ask you to provide 5 more additional ones to better explore the spatial pattern of fire in a way we are not able to capture using the metrics we proposed. Calculate these metrics for all fire rasters you have. This can be accomplished using a simple `for loop` in python or by feeding a list of rasters to the `calculate_lsm` function in R. Use a 8-neighboring rule for your metrics if applicable. You can conduct the analysis in the language you are the most comfortable with. Your coding skills are not subject to any grading in our labs.
+
+To visualize your results, you can code your own call or use the following R code as a template.
+
+``` {r template}
+# compute metrics
+metrics_landscape <- calculate_lsm(landscape=flagged, what = c("lsm_l_ed", "lsm_l_contag"), neighbourhood = 8, directions = 8)
+metrics_class <- calculate_lsm(landscape=flagged, what = c("lsm_c_pland", "lsm_c_np", "lsm_c_area_mn"), neighbourhood = 8, directions = 8)
+
+# recode metrics
+metrics_landscape <- metrics_landscape %>%
+     mutate(layer = recode(layer, "1" = "fire_1_high",
+         "2" = "fire_1_low",
+         "3" = "fire_2_high",
+         "4" = "fire_2_low",
+         "5" = "fire_3_high",
+         "6" = "fire_3_low",
+         "7" = "fire_4_high",
+         "8" = "fire_4_low",
+         "9" = "fire_5_high",
+         "10" = "fire_5_low"))
+metrics_class <- metrics_class %>%
+     mutate(layer = recode(layer, "1" = "fire_1_high",
+         "2" = "fire_1_low",
+         "3" = "fire_2_high",
+         "4" = "fire_2_low",
+         "5" = "fire_3_high",
+         "6" = "fire_3_low",
+         "7" = "fire_4_high",
+         "8" = "fire_4_low",
+         "9" = "fire_5_high",
+         "10" = "fire_5_low"))
+metrics_landscape$layer <- as.factor(metrics_landscape$layer)
+metrics_landscape$metric <- as.factor(metrics_landscape$metric)
+metrics_class$layer <- as.factor(metrics_class$layer)
+metrics_class$class <- as.factor(metrics_class$class)
+metrics_class$metric <- as.factor(metrics_class$metric)
+metrics_landscape <- metrics_landscape %>% 
+  separate(col=layer, into = c("fire", "landscape", "threshold"), sep="_") %>%
+  mutate(rule = "8")
+metrics_class <- metrics_class %>% 
+separate(col=layer, into = c("fire", "landscape", "threshold"), sep="_") %>%
+mutate(rule = "8")
+
+# plot
+pl <- ggplot(metrics_landscape, aes(x=threshold, y=value)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(aes(col=landscape), size=2, alpha=0.8) +
+  facet_wrap(metric~., scales="free_y") +
+  theme_bw()
+pc <- ggplot(metrics_class, aes(x=threshold, y=value, fill=class)) +
+  geom_boxplot(alpha = 0.7, outlier.shape=NA) +
+  geom_jitter(alpha=0.4) +
+  facet_grid(metric~class, scales="free_y") +
+  scale_fill_manual(values=c("darkgreen", "tan4"), 
+                       name="Class",
+                       labels=c("Unburned", "Burned")) +
+  xlab("dNBR Threshold") +
+  theme_bw()
+```
+
+:::{.callout-tip}
+Take a look at higher-level classes for the selection of your 5 new metrics as fires are likely to expand beyond single patches. Think about metrics describing shape complexity and aggregations when working with fires.
+:::
+
+***Question 1: Provide the rational for each new metric that you selected for your analysis using a bullet point for each.***
+
+***Question 2: Provide 2 bullet points on why metric redundancy may be an issue in the analysis of landscape patterns.***
+
+
+# Working with continuous data
+
+One thing we stressed at the beninninig is that landscape metrics can only be calculated on catagorical rasters. But what if we started with a continuous raster where pixels can take any number, say, from 1 to 2? That would be a problem. One simple workaround is establishing a **threshold** such that values above or below such threshold are assigned to a class or another. However, the way you select a threshold will influence the output you get, similarly to setting the neighboring rule. We have already encountered this threshold at the beninning of the lab, but we simply glossed over it. Fires can be detected using satellite-derived indexes that describe how "burned" a pixel is based on its spectral properties. 
+
+In simple words, we look at how "bright" the pixel is in 2 wavelengths and we compare these values over time (@eq-dnbr). An increse in dNBR may be indicative of a fire. The higher dNBR, the higher the severity of the fire. 
+
+$$ NBR = \frac{(NIR - SWIR)}{(NIR + SWIR)} ∈ (0, 1) $$
+$$ dNBR = (PreFireNBR - PostFireNBR) ∈ (0, 1) $$ {#eq-dnbr}
+
+Where NIR is the near infrared wavelenght and SWIR is the short-wave infrared wavelength.
+
+If you take a closer look at the metrics we computed earlier and plot them (@fig-boxes), you would notice that we have 2 threshold values, specifically for dNBR. A low threshold indicates that fires are characterized early, or when they are less severe. A higher threshold only characterizes high severity fires. A low threshold value results in a higher contagion value, indicating a higher aggregation level than high severity fires (mostly because we include lower severity fires as well), as well as less complex shapes as indicated by the lower edge density values. Similarly, class-level metrics indicate larger and more patches on average for the burned class (2). Inverse trends are expected for the unburned area class (1).
+
+``` {r plot_metrics}
+#| fig-cap: "Plotted landscape-level and class-level metrics for fire under 2 different threshold values for dNBR"
+#| label: fig-boxes
+
+pl
+pc
+```
+
+***Question 3: Briefly describe using bullet points 3 main differences in spatial patterns that where characterized by the low vs. high dNBR thresholds. Refer to your 5 new landscape metrics in the answer.***
+
+***Question 4: Briefly describe how a change in neighboring rule may affect the quantitative estimates of burn patterns. Did all metrics change in the same way?***
+
+***Question 5: How does the choice of the landscape metrics and threshold affect the ecological interpretation of the burned patterns on the landscape?***
+
+# Conclusions
+
+We have explored the use of landscape metrics to understand landscape patterns and their change over time. New metrics are constantly developed, however their ecological meaning must be carefully assessed against the task at hand. In conclusion, while 2D landscape metrics are easy to understand and calculate, ecologists are getting more interested in 3D metrics (or "morphometrics"). To learn more, check out @lepczyk2021.
+
+### References
+
+::: {#refs}
+:::
