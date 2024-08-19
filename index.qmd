@@ -84,7 +84,6 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(tidyterra)
-library(patchwork)
 
 fires <- list.files('data', pattern = 'fire', full.names = T)
 
@@ -101,7 +100,7 @@ flagged <- lapply(fires, function(f) {
 ggplot() +
   geom_spatraster(data = rast(flagged)) +
   facet_wrap(~lyr, ncol = 2) +
-  scale_fill_manual(values = c('unburned' = '#c1be7a', 'burned' = '#9f0a1a', 'modata' = '#ababab'))
+  scale_fill_manual(values = c('unburned' = '#c1be7a', 'burned' = '#9f0a1a', 'nodata' = '#ababab'))
 ```
 
 ``` {r explore}
@@ -189,9 +188,34 @@ We think that a good initial approach to quantify spatial patterns of fire is by
 
 To the list of this metrics, we ask you to provide 5 more additional ones to better explore the spatial pattern of fire in a way we are not able to capture using the metrics we proposed. Calculate these metrics for all fire rasters you have. This can be accomplished using a simple `for loop` in python or by feeding a list of rasters to the `calculate_lsm` function in R. Use a 8-neighboring rule for your metrics if applicable. You can conduct the analysis in the language you are the most comfortable with. Your coding skills are not subject to any grading in our labs.
 
-To visualize your results, you can code your own call or use the following R code as a template.
+:::{.callout-tip}
+Take a look at higher-level classes for the selection of your 5 new metrics as fires are likely to expand beyond single patches. Think about metrics describing shape complexity and aggregations when working with fires.
+:::
+
+***Question 1: Provide the rationale for each new metric that you selected for your analysis using a bullet point for each.***
+
+***Question 2: Provide 2 bullet points on why metric redundancy may be an issue in the analysis of landscape patterns.***
+
+
+# Working with continuous data
+
+One thing we stressed at the beginning is that landscape metrics can only be calculated on categorical rasters. But what if we started with a continuous raster where pixels can take any number, say, from 1 to 2? That would be a problem. One simple workaround is establishing a **threshold** such that values above or below such threshold are assigned to a class or another. However, the way you set a threshold will influence the output you get, similarly to setting the neighboring rule. We have already encountered this threshold at the beginning of the lab, but we glossed over it. 
+
+In our lab example, fires can be detected using satellite-derived indexes that describe how "burned" a pixel is based on its spectral properties. In simple words, we look at how "bright" the pixel is in 2 wavelengths and we compare these values over time (@eq-dnbr). An increase in dNBR may be indicative of a fire. The higher dNBR, the higher the severity of the fire. 
+
+$$ NBR = \frac{(NIR - SWIR)}{(NIR + SWIR)} ∈ (0, 1) $$
+$$ dNBR = (PreFireNBR - PostFireNBR) ∈ (0, 1) $$ {#eq-dnbr}
+
+Where NIR is the near infrared wavelength and SWIR is the short-wave infrared wavelength.
+
+If you take a closer look at the metrics we computed earlier and plot them (@fig-boxes), you would notice that we have 2 threshold values, specifically for dNBR. A low threshold indicates that fires are characterized early, or when they are less severe. A higher threshold only characterizes high severity fires. A low threshold value results in a higher contagion value, indicating a higher aggregation level than high severity fires (mostly because we include lower severity fires as well), as well as less complex shapes as indicated by the lower edge density values. Similarly, class-level metrics indicate larger and more patches on average for the burned class. Inverse trends are expected for the unburned area class.
 
 ``` {r template}
+#| fig-cap: "Plotted landscape-level and class-level metrics for fire under 2 different threshold values for dNBR"
+#| label: fig-boxes
+#| fig-subcap: true
+#| layout-nrow: 2
+
 # compute metrics
 metrics_landscape <- calculate_lsm(landscape=flagged, what = c("lsm_l_ed", "lsm_l_contag"), neighbourhood = 8, directions = 8)
 metrics_class <- calculate_lsm(landscape=flagged, what = c("lsm_c_pland", "lsm_c_np", "lsm_c_area_mn"), neighbourhood = 8, directions = 8)
@@ -222,21 +246,21 @@ metrics_class <- metrics_class %>%
          "9" = "fire_5_high",
          "10" = "fire_5_low"))
 metrics_landscape <- metrics_landscape %>% 
-  mutate(across(layer, metric), as.factor) %>%
+  mutate(across(c(layer, metric), as.factor)) %>%
   separate(col=layer, into = c("fire", "landscape", "threshold"), sep="_") %>%
   mutate(rule = "8")
 metrics_class <- metrics_class %>% 
-  mutate(across(layer, class, metric), as.factor) %>%
+  mutate(across(c(layer, class, metric), as.factor)) %>%
   separate(col=layer, into = c("fire", "landscape", "threshold"), sep="_") %>%
   mutate(rule = "8")
 
 # plot
-pl <- ggplot(metrics_landscape, aes(x=threshold, y=value)) +
+ggplot(metrics_landscape, aes(x=threshold, y=value)) +
   geom_boxplot(outlier.shape = NA) +
   geom_jitter(aes(col=landscape), size=2, alpha=0.8) +
   facet_wrap(metric~., scales="free_y") +
   theme_bw()
-pc <- ggplot(metrics_class, aes(x=threshold, y=value, fill=class)) +
+ggplot(metrics_class, aes(x=threshold, y=value, fill=class)) +
   geom_boxplot(alpha = 0.7, outlier.shape=NA) +
   geom_jitter(alpha=0.4) +
   facet_grid(metric~class, scales="free_y") +
@@ -245,36 +269,6 @@ pc <- ggplot(metrics_class, aes(x=threshold, y=value, fill=class)) +
                        labels=c("Unburned", "Burned")) +
   xlab("dNBR Threshold") +
   theme_bw()
-```
-
-:::{.callout-tip}
-Take a look at higher-level classes for the selection of your 5 new metrics as fires are likely to expand beyond single patches. Think about metrics describing shape complexity and aggregations when working with fires.
-:::
-
-***Question 1: Provide the rationale for each new metric that you selected for your analysis using a bullet point for each.***
-
-***Question 2: Provide 2 bullet points on why metric redundancy may be an issue in the analysis of landscape patterns.***
-
-
-# Working with continuous data
-
-One thing we stressed at the beginning is that landscape metrics can only be calculated on catagorical rasters. But what if we started with a continuous raster where pixels can take any number, say, from 1 to 2? That would be a problem. One simple workaround is establishing a **threshold** such that values above or below such threshold are assigned to a class or another. However, the way you select a threshold will influence the output you get, similarly to setting the neighboring rule. We have already encountered this threshold at the beginning of the lab, but we simply glossed over it. Fires can be detected using satellite-derived indexes that describe how "burned" a pixel is based on its spectral properties. 
-
-In simple words, we look at how "bright" the pixel is in 2 wavelengths and we compare these values over time (@eq-dnbr). An increase in dNBR may be indicative of a fire. The higher dNBR, the higher the severity of the fire. 
-
-$$ NBR = \frac{(NIR - SWIR)}{(NIR + SWIR)} ∈ (0, 1) $$
-$$ dNBR = (PreFireNBR - PostFireNBR) ∈ (0, 1) $$ {#eq-dnbr}
-
-Where NIR is the near infrared wavelength and SWIR is the short-wave infrared wavelength.
-
-If you take a closer look at the metrics we computed earlier and plot them (@fig-boxes), you would notice that we have 2 threshold values, specifically for dNBR. A low threshold indicates that fires are characterized early, or when they are less severe. A higher threshold only characterizes high severity fires. A low threshold value results in a higher contagion value, indicating a higher aggregation level than high severity fires (mostly because we include lower severity fires as well), as well as less complex shapes as indicated by the lower edge density values. Similarly, class-level metrics indicate larger and more patches on average for the burned class (2). Inverse trends are expected for the unburned area class (1).
-
-``` {r plot_metrics}
-#| fig-cap: "Plotted landscape-level and class-level metrics for fire under 2 different threshold values for dNBR"
-#| label: fig-boxes
-
-pl
-pc
 ```
 
 ***Question 3: Briefly describe using bullet points 3 main differences in spatial patterns that where characterized by the low vs. high dNBR thresholds. Refer to your 5 new landscape metrics in the answer.***
