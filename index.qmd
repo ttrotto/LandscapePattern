@@ -198,7 +198,8 @@ metrics_class <- calculate_lsm(landscape=flagged, what = c("lsm_c_pland", "lsm_c
 
 # recode metrics
 metrics_landscape <- metrics_landscape %>%
-     mutate(layer = recode(layer, "1" = "fire_1_high",
+     mutate(layer = recode(layer,
+         "1" = "fire_1_high",
          "2" = "fire_1_low",
          "3" = "fire_2_high",
          "4" = "fire_2_low",
@@ -209,7 +210,8 @@ metrics_landscape <- metrics_landscape %>%
          "9" = "fire_5_high",
          "10" = "fire_5_low"))
 metrics_class <- metrics_class %>%
-     mutate(layer = recode(layer, "1" = "fire_1_high",
+     mutate(layer = recode(layer,
+         "1" = "fire_1_high",
          "2" = "fire_1_low",
          "3" = "fire_2_high",
          "4" = "fire_2_low",
@@ -219,17 +221,14 @@ metrics_class <- metrics_class %>%
          "8" = "fire_4_low",
          "9" = "fire_5_high",
          "10" = "fire_5_low"))
-metrics_landscape$layer <- as.factor(metrics_landscape$layer)
-metrics_landscape$metric <- as.factor(metrics_landscape$metric)
-metrics_class$layer <- as.factor(metrics_class$layer)
-metrics_class$class <- as.factor(metrics_class$class)
-metrics_class$metric <- as.factor(metrics_class$metric)
 metrics_landscape <- metrics_landscape %>% 
+  mutate(across(layer, metric), as.factor) %>%
   separate(col=layer, into = c("fire", "landscape", "threshold"), sep="_") %>%
   mutate(rule = "8")
 metrics_class <- metrics_class %>% 
-separate(col=layer, into = c("fire", "landscape", "threshold"), sep="_") %>%
-mutate(rule = "8")
+  mutate(across(layer, class, metric), as.factor) %>%
+  separate(col=layer, into = c("fire", "landscape", "threshold"), sep="_") %>%
+  mutate(rule = "8")
 
 # plot
 pl <- ggplot(metrics_landscape, aes(x=threshold, y=value)) +
@@ -252,21 +251,21 @@ pc <- ggplot(metrics_class, aes(x=threshold, y=value, fill=class)) +
 Take a look at higher-level classes for the selection of your 5 new metrics as fires are likely to expand beyond single patches. Think about metrics describing shape complexity and aggregations when working with fires.
 :::
 
-***Question 1: Provide the rational for each new metric that you selected for your analysis using a bullet point for each.***
+***Question 1: Provide the rationale for each new metric that you selected for your analysis using a bullet point for each.***
 
 ***Question 2: Provide 2 bullet points on why metric redundancy may be an issue in the analysis of landscape patterns.***
 
 
 # Working with continuous data
 
-One thing we stressed at the beninninig is that landscape metrics can only be calculated on catagorical rasters. But what if we started with a continuous raster where pixels can take any number, say, from 1 to 2? That would be a problem. One simple workaround is establishing a **threshold** such that values above or below such threshold are assigned to a class or another. However, the way you select a threshold will influence the output you get, similarly to setting the neighboring rule. We have already encountered this threshold at the beninning of the lab, but we simply glossed over it. Fires can be detected using satellite-derived indexes that describe how "burned" a pixel is based on its spectral properties. 
+One thing we stressed at the beginning is that landscape metrics can only be calculated on catagorical rasters. But what if we started with a continuous raster where pixels can take any number, say, from 1 to 2? That would be a problem. One simple workaround is establishing a **threshold** such that values above or below such threshold are assigned to a class or another. However, the way you select a threshold will influence the output you get, similarly to setting the neighboring rule. We have already encountered this threshold at the beginning of the lab, but we simply glossed over it. Fires can be detected using satellite-derived indexes that describe how "burned" a pixel is based on its spectral properties. 
 
-In simple words, we look at how "bright" the pixel is in 2 wavelengths and we compare these values over time (@eq-dnbr). An increse in dNBR may be indicative of a fire. The higher dNBR, the higher the severity of the fire. 
+In simple words, we look at how "bright" the pixel is in 2 wavelengths and we compare these values over time (@eq-dnbr). An increase in dNBR may be indicative of a fire. The higher dNBR, the higher the severity of the fire. 
 
 $$ NBR = \frac{(NIR - SWIR)}{(NIR + SWIR)} ∈ (0, 1) $$
 $$ dNBR = (PreFireNBR - PostFireNBR) ∈ (0, 1) $$ {#eq-dnbr}
 
-Where NIR is the near infrared wavelenght and SWIR is the short-wave infrared wavelength.
+Where NIR is the near infrared wavelength and SWIR is the short-wave infrared wavelength.
 
 If you take a closer look at the metrics we computed earlier and plot them (@fig-boxes), you would notice that we have 2 threshold values, specifically for dNBR. A low threshold indicates that fires are characterized early, or when they are less severe. A higher threshold only characterizes high severity fires. A low threshold value results in a higher contagion value, indicating a higher aggregation level than high severity fires (mostly because we include lower severity fires as well), as well as less complex shapes as indicated by the lower edge density values. Similarly, class-level metrics indicate larger and more patches on average for the burned class (2). Inverse trends are expected for the unburned area class (1).
 
