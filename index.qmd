@@ -194,7 +194,7 @@ Take a look at higher-level classes for the selection of your 5 new metrics as f
 
 ***Question 1: Provide the rationale for each new metric that you selected for your analysis using a bullet point for each.***
 
-***Question 2: Provide 2 bullet points on why metric redundancy may be an issue in the analysis of landscape patterns.***
+***Question 2: Why may metric redundancy be an issue in the analysis of landscape patterns?***
 
 
 # Working with continuous data
