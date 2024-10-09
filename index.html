@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.5.55">
+<meta name="generator" content="quarto-1.4.554">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -35,7 +35,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
   { counter-reset: source-line 0; }
@@ -90,7 +90,7 @@ div.csl-indent {
 <link href="index_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="index_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <script type="text/javascript">
@@ -190,9 +190,9 @@ window.Quarto = {
 <li>Evaluating alternative lands management strategies in terms of the landscape patterns that may result</li>
 <li>Determining if a certain pattern is characteristic of a specific disturbance</li>
 </ul>
-<p>In particular, in this lab we will take advantage of both R- and python-based libraries to objectively quantify landscape patterns to answer specific research questions. Both these libraries are inspired by FRAGSTATS (<span class="citation" data-cites="mcgarigal1995">McGarigal (<a href="#ref-mcgarigal1995" role="doc-biblioref">1995</a>)</span>). More in details, we will explore the use of landscape metics to compare spatial patterns created by 5 different fires (<a href="#fig-fires" class="quarto-xref">Figure&nbsp;3</a>) using landscape metrics. Furthermore, we will focus on comparing spatial patterns of fires of different severity to see how they produce different spatial responses on the landscape.</p>
-<p>Note that one core assumption that these and other methods take is that the input data source is a 2-dimensional (2D) <strong>categorical raster</strong>. A categorical raster is a raster product that describes homogeneous landscape features with integer numbers (<a href="#fig-lands" class="quarto-xref">Figure&nbsp;1</a>). This assumption is fundamental for the calculation of landscape metrics as they all base their equations on individual pixels. We will explore this aspect more in depth later on. However, it is often the case that you’d need to convert your <strong>continuous raster</strong> product into a categorical raster. The simplest way to do it is to define a threshold value where pixels above or below such threshold are assing a class or another. Conversion is a crucial step in the calculation of landscape patterns, because the selection of the threshold value would affect how the quantification of the landscape patterns of interest.</p>
-<div id="fig-lands" class="quarto-float quarto-figure quarto-figure-center anchored">
+<p>In particular, in this lab we will take advantage of both R- and python-based libraries to objectively quantify landscape patterns to answer specific research questions. Both these libraries are inspired by FRAGSTATS (<span class="citation" data-cites="mcgarigal1995">McGarigal (<a href="#ref-mcgarigal1995" role="doc-biblioref">1995</a>)</span>). More in details, we will explore the use of landscape metrics to compare spatial patterns created by 5 different fires (<a href="#fig-fires" class="quarto-xref">Figure&nbsp;3</a>) using landscape metrics. Furthermore, we will focus on comparing spatial patterns of fires of different severity to see how they produce different spatial responses on the landscape.</p>
+<p>Note that one core assumption that these and other methods take is that the input data source is a 2-dimensional (2D) <strong>categorical raster</strong>. A categorical raster is a raster product that describes homogeneous landscape features with integer numbers (<a href="#fig-lands" class="quarto-xref">Figure&nbsp;1</a>). This assumption is fundamental for the calculation of landscape metrics as they all base their equations on individual pixels. We will explore this aspect more in depth later on. However, it is often the case that you’d need to convert your <strong>continuous raster</strong> product into a categorical raster. The simplest way to do it is to define a threshold value where pixels above or below such threshold are assigned a class or another. Conversion is a crucial step in the calculation of landscape patterns, because the selection of the threshold value would affect the quantification of the landscape patterns of interest.</p>
+<div id="fig-lands" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-lands-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="data/sim_lands.png" class="img-fluid figure-img">
@@ -202,8 +202,8 @@ Figure&nbsp;1: Simulated landscapes representing 3 categories/classes (urban, ag
 </figcaption>
 </figure>
 </div>
-<p>Another important concept to understand is <strong>neighboring</strong>. When working with landscape metrics, individual pixels and their neighbors are both important. Take for example <a href="#fig-nn" class="quarto-xref">Figure&nbsp;2</a>, we are working with the central pixel marked with a cross. How do we define a uniform patch or region? Do we consider only the pixels north-south and west-east, or do we also consider the diagonals? This is important because by changing the neighboring rule we change how patches, and therefore metrics, are interpreted and calculated. For example, using a 4-neighboring rule, the patch would have an areas of 5, whereas using an 8-neighboring rule it would have an areas of 9!</p>
-<div id="fig-nn" class="quarto-float quarto-figure quarto-figure-center anchored">
+<p>Another important concept to understand is <strong>neighboring</strong>. When working with landscape metrics, individual pixels and their neighbors are both important. Take for example <a href="#fig-nn" class="quarto-xref">Figure&nbsp;2</a>, we are working with the central pixel marked with a cross. How do we define a uniform patch or region? Do we consider only the pixels north-south and west-east, or do we also consider the diagonals? This is important because by changing the neighboring rule we change how patches, and therefore metrics, are interpreted and calculated. For example, using a 4-neighboring rule, the patch would have an areas of 5, whereas using an 8-neighboring rule it would have an area of 9!</p>
+<div id="fig-nn" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-nn-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="data/neighbors.png" class="img-fluid figure-img">
@@ -274,7 +274,7 @@ Figure&nbsp;2: Illustration of 2 neighboring rules: (left) 4-neighbors, (right) 
 <span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">'unburned'</span> <span class="ot">=</span> <span class="st">'#c1be7a'</span>, <span class="st">'burned'</span> <span class="ot">=</span> <span class="st">'#9f0a1a'</span>, <span class="st">'nodata'</span> <span class="ot">=</span> <span class="st">'#ababab'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<div id="fig-fires" class="quarto-float quarto-figure quarto-figure-center anchored">
+<div id="fig-fires" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-fires-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="index_files/figure-html/fig-fires-1.png" class="img-fluid figure-img" width="768">
@@ -305,7 +305,7 @@ min value   :          NA
 max value   :          NA </code></pre>
 </div>
 </div>
-<p>Note how we have 2 classes and a “nodata” class. Class 1 represents unburned areas and class 2 represents burned areas. Class 99 is our nodata class. Now that we have some basic information on the landscape, we should check that everything is right. That is, check that the coordinate reference system (CRS) is right, and that we have the right number of classes. This is pretty straighforward. You would notice that the rasters have a CRS = EPSG:4326. In python you can check the CRS using <code>src.spatial_ref</code>. If the field is populated, explore it. In R, the <code>landscapemetrics</code> package offers the <code>check_landscape</code> function. So just type <code>check_landscape(flagged[[1]])</code> to see if the first raster is ready to go.</p>
+<p>Note how we have 2 classes and a “nodata” class. Class 1 represents unburned areas and class 2 represents burned areas. Class 99 is our nodata class. Now that we have some basic information on the landscape, we should check that everything is right. That is, check that the coordinate reference system (CRS) is right, and that we have the right number of classes. This is pretty straighforward. You would notice that the rasters have a CRS = EPSG:32612. In python you can check the CRS using <code>src.spatial_ref</code>. In R, the <code>landscapemetrics</code> package offers the <code>check_landscape</code> function. So just type <code>check_landscape(flagged[[1]])</code> to see if the first raster is ready to go.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -316,15 +316,15 @@ max value   :          NA </code></pre>
 1     1 projected     m integer         2  ✔</code></pre>
 </div>
 </div>
-<p>We see that the raster is ready to go!</p>
+<p>We see that the raster is ready to go! You can also iteratively check every layer using a loop.</p>
 <section id="list-available-metrics" class="level2">
 <h2 class="anchored" data-anchor-id="list-available-metrics">List available metrics</h2>
-<p>The <code>landscapemetrics</code> package includes a function to show you all available metrics and filter them according to the characteristics of the landscape they conceptually describe. For help, have a look at the help page of the <code>list_lsm()</code> function. You would see the acronym and full name of all the available metrics, the type, and the level they are applied to. For example. we can calculate metrics at the <code>patch</code>-, <code>class</code>-, or <code>landscape</code>-level. The syntax is pretty simple. All metrics start with <code>lsm_</code>, followed by the level (<code>p/c/l</code>), and the function name. Some of these metrics have other parameters that can be passed (e.g.&nbsp;neighboring rule). In some cases, legacy parameters are carried forward, so you will end up with metrics that have both a <code>neighbors</code> and <code>direction</code> parameters. They mean the same thing, but for legacy purposes they are retained to this point. In case, give the same value to both to be sure they are interpreted as you would expect.</p>
+<p>The <code>landscapemetrics</code> package includes a function to show you all available metrics and filter them according to the characteristics of the landscape they describe. For help, have a look at the help page of the <code>list_lsm()</code> function. You would see the acronym and full name of all the available metrics, the type, and the level they are applied to. For example. we can calculate metrics at the <code>patch</code>-, <code>class</code>-, or <code>landscape</code> level. The syntax is pretty simple. All metrics start with <code>lsm_</code>, followed by the level (<code>p/c/l</code>), and the function name. Some of these metrics have other parameters that can be passed (e.g.&nbsp;neighboring rule). In some cases, legacy parameters are carried forward, so you will end up with metrics that have both a <code>neighbors</code> and <code>direction</code> parameters. They mean the same thing, but for legacy purposes they are retained to this point. In case, give the same value to both to be sure they are interpreted as you would expect.</p>
 <p>With <code>pylandstats</code> is a bit more tricky. You’d need to explore the online documentation or the properties of a <code>Landscape</code> object as it is generated using <code>landscape = pls.Landscape()</code>. By using <code>dir(landscape)</code> you can see the list of available properties associated with the object. However, for a more detailed description, refer to the <a href="https://pylandstats.readthedocs.io/en/v2.3.0/index.html">online documentation</a>.</p>
 </section>
 <section id="metric-calculation" class="level2">
 <h2 class="anchored" data-anchor-id="metric-calculation">Metric calculation</h2>
-<p>Let’s explore how to actually use the libraries. A metric of interest for fire is <code>area</code>.</p>
+<p>Let’s explore how to actually use the libraries. An important metric for fire is <code>area</code>.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -353,9 +353,9 @@ max value   :          NA </code></pre>
 # ℹ 105 more rows</code></pre>
 </div>
 </div>
-<p>Here we see that the functions both output the area associated to each patch in the first landscape. In total, we have 115 patches identified using a 8-neighboring rule. Note that the python output is 0-indexed, whereas the R output is 1-indexed. The area values are unitless, so care must be taken when interpreting these metrics. We also see that there is a <code>class</code> column. This matches the length of our classes (1-2), so within each class, we have a certain number of patches. In particular, 49 patches for class 1 and 66 for class 2.</p>
-<p>A great feature about the R library is that all metrics are returned in the same format. You will always have a tibble with the same number of columns and naming such that you can easily combine the output of different metrics into a single dataframe. In python, it’s a bit more complicated to do as values are either returned as dataframes or numbers.</p>
-<p>What if we wanted to extract multiple metrics at a time. That’s another easy task! We can use the <code>calculate_lsm</code> function in the <code>landscapemetrics</code> package to calculate multiple metrics for a specific “level” and “type” (as defined by <code>lsm_list()</code>) or we can specify the <code>what</code> parameter for an ad-hoc list of metrics of interest.</p>
+<p>Here we see that the two functions output the area associated to each patch in the first landscape. In total, we have 115 patches identified using a 8-neighboring rule. Note that the python output is 0-indexed, whereas the R output is 1-indexed. The area values are unitless, so care must be taken when interpreting these metrics (depends on the CRS). We also see that there is a <code>class</code> column. This matches the length of our classes (1-2), so within each class, we have a certain number of patches. In particular, 49 patches for class 1 and 66 for class 2.</p>
+<p>A great feature about the R library is that all metrics are returned in the same format. You will always have a tibble with the same number of columns and naming such that you can easily combine the output of different metrics into a single dataframe. In python, it’s a bit more complicated to do as values are either returned as dataframes or constants.</p>
+<p>What if we wanted to extract multiple metrics at a time? That’s another easy task! We can use the <code>calculate_lsm</code> function in the <code>landscapemetrics</code> package to calculate multiple metrics for a specific “level” and “type” (as defined by <code>lsm_list()</code>) or we can specify the <code>what</code> parameter for an ad-hoc list of metrics of interest.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -428,7 +428,7 @@ max value   :          NA </code></pre>
 <section id="work-on-your-own" class="level2">
 <h2 class="anchored" data-anchor-id="work-on-your-own">Work on your own</h2>
 <p>Now that you have a sense of how landscape metrics work and how they can be calculated, it’s your time to explore some of these metrics in more depth! You are now tasked to quantify fire patterns using a series of landscape metrics we provide in addition to a set of metrics <em>of your choice</em>. Choosing which metrics to use could be a daunting task, but remember that a long list of metrics may result redundant as many metrics report values that are more or less correlated with each other. For example, a large patch is also likely to have a large perimeter, therefore you would select either one or another, not both. Otherwise, you can work with metrics that summarize the relationship between the two, for example using the perimeter-to-area ratio.</p>
-<p>We think that a good initial approach to quantify spatial patterns of fire is by looking at the shape of the burned patches, their number, size, the proportion of the landscape they occupy, and how they are distributed in relation to one another (e.g.&nbsp;clumped/sparse). In particular, we are interested in looking at the following metrics (using the <code>landscapemetrics</code> package as reference):</p>
+<p>We think that a good initial approach to quantifying spatial patterns of fire is by looking at the shape of the burned patches, their number, size, the proportion of the landscape they occupy, and how they are distributed in relation to one another (e.g.&nbsp;clumped/sparse). In particular, we are interested in looking at the following metrics (using the <code>landscapemetrics</code> package as reference):</p>
 <ul>
 <li><ins>
 Landscape-level metrics
@@ -439,7 +439,7 @@ Class-level metrics
 </ins>
 : proportion of landscape occupied (PLAND), number of patches (NP), and mean patch size (AREA_MN)</li>
 </ul>
-<p>To the list of this metrics, we ask you to provide 5 more additional ones to better explore the spatial pattern of fire in a way we are not able to capture using the metrics we proposed. Calculate these metrics for all fire rasters you have. This can be accomplished using a simple <code>for loop</code> in python or by feeding a list of rasters to the <code>calculate_lsm</code> function in R. Use a 8-neighboring rule for your metrics if applicable. You can conduct the analysis in the language you are the most comfortable with. Your coding skills are not subject to any grading in our labs.</p>
+<p>To the list of this metrics, we ask you to provide 5 more additional ones to better explore the spatial pattern of fire in a way we are not able to using the metrics we proposed. Calculate these metrics for all fire rasters you have. This can be accomplished using a simple <code>for loop</code> in python or by feeding a list of rasters or a raster stack to the <code>calculate_lsm</code> function in R. Use a 8-neighboring rule for your metrics if applicable. You can conduct the analysis in the language you are the most comfortable with. Your coding skills are not subject to any grading in our labs.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -459,7 +459,7 @@ Tip
 </section>
 <section id="working-with-continuous-data" class="level1">
 <h1>Working with continuous data</h1>
-<p>One thing we stressed at the beginning is that landscape metrics can only be calculated on categorical rasters. But what if we started with a continuous raster where pixels can take any number, say, from 1 to 2? That would be a problem. One simple workaround is establishing a <strong>threshold</strong> such that values above or below such threshold are assigned to a class or another. However, the way you set a threshold will influence the output you get, similarly to setting the neighboring rule. We have already encountered this threshold at the beginning of the lab, but we glossed over it.</p>
+<p>One thing we stressed at the beginning is that landscape metrics can only be calculated on categorical rasters. But what if we started with a continuous raster where pixels can take any value, say, from 1 to 2? That would be a problem. One simple workaround is establishing a <strong>threshold</strong> such that values above or below such threshold are assigned to a class or another. However, the way you set a threshold will influence the output you get, similarly to setting the neighboring rule. We have already encountered this threshold at the beginning of the lab, but we glossed over it.</p>
 <p>In our lab example, fires can be detected using satellite-derived indexes that describe how “burned” a pixel is based on its spectral properties. In simple words, we look at how “bright” the pixel is in 2 wavelengths and we compare these values over time (<a href="#eq-dnbr" class="quarto-xref">Equation&nbsp;1</a>). An increase in dNBR may be indicative of a fire. The higher dNBR, the higher the severity of the fire.</p>
 <p><span class="math display">\[ NBR = \frac{(NIR - SWIR)}{(NIR + SWIR)} ∈ (0, 1) \]</span> <span id="eq-dnbr"><span class="math display">\[ dNBR = (PreFireNBR - PostFireNBR) ∈ (0, 1)  \tag{1}\]</span></span></p>
 <p>Where NIR is the near infrared wavelength and SWIR is the short-wave infrared wavelength.</p>
@@ -526,12 +526,13 @@ Tip
 <div aria-describedby="fig-boxes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="quarto-layout-row">
 <div class="cell-output-display quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-boxes" style="flex-basis: 100.0%;justify-content: flex-start;">
-<div id="fig-boxes-1" class="quarto-float quarto-figure quarto-figure-center anchored" width="672">
+<div id="fig-boxes-1" class="quarto-figure quarto-figure-center quarto-float anchored" width="672">
 <figure class="quarto-float quarto-subfloat-fig figure">
 <div aria-describedby="fig-boxes-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="index_files/figure-html/fig-boxes-1.png" id="fig-boxes-1" class="img-fluid figure-img" data-ref-parent="fig-boxes" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-boxes-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a)
 </figcaption>
 </figure>
 </div>
@@ -539,12 +540,13 @@ Tip
 </div>
 <div class="quarto-layout-row">
 <div class="cell-output-display quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-boxes" style="flex-basis: 100.0%;justify-content: flex-start;">
-<div id="fig-boxes-2" class="quarto-float quarto-figure quarto-figure-center anchored" width="672">
+<div id="fig-boxes-2" class="quarto-figure quarto-figure-center quarto-float anchored" width="672">
 <figure class="quarto-float quarto-subfloat-fig figure">
 <div aria-describedby="fig-boxes-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="index_files/figure-html/fig-boxes-2.png" id="fig-boxes-2" class="img-fluid figure-img" data-ref-parent="fig-boxes" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-boxes-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b)
 </figcaption>
 </figure>
 </div>
@@ -563,7 +565,7 @@ Figure&nbsp;4: Plotted landscape-level and class-level metrics for fire under 2 
 </section>
 <section id="conclusions" class="level1">
 <h1>Conclusions</h1>
-<p>We have explored the use of landscape metrics to understand landscape patterns and their change over time. New metrics are constantly developed, however their ecological meaning must be carefully assessed against the task at hand. In conclusion, while 2D landscape metrics are easy to understand and calculate, ecologists are getting more interested in 3D metrics (or “morphometrics”). To learn more, check out <span class="citation" data-cites="lepczyk2021">Lepczyk et al. (<a href="#ref-lepczyk2021" role="doc-biblioref">2021</a>)</span>.</p>
+<p>We have explored the use of landscape metrics to understand landscape patterns and their change over time. New metrics are constantly developed, however their ecological meaning must be carefully assessed against the task at hand. In conclusion, while 2D landscape metrics are easy to understand and calculate, ecologists are getting more interested in 3D metrics (or “morphometrics”) and surface metrics. To learn more, check out <span class="citation" data-cites="mcgarigal2009">McGarigal, Tagil, and Cushman (<a href="#ref-mcgarigal2009" role="doc-biblioref">2009</a>)</span> and <span class="citation" data-cites="lepczyk2021">Lepczyk et al. (<a href="#ref-lepczyk2021" role="doc-biblioref">2021</a>)</span>.</p>
 <section id="references" class="level3">
 <h3 class="anchored" data-anchor-id="references">References</h3>
 <div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
@@ -581,6 +583,9 @@ Lepczyk, Christopher A, Lisa M Wedding, Gregory P Asner, Simon J Pittman, Trista
 </div>
 <div id="ref-mcgarigal1995" class="csl-entry" role="listitem">
 McGarigal, Kevin. 1995. <em>FRAGSTATS: Spatial Pattern Analysis Program for Quantifying Landscape Structure</em>. Vol. 351. US Department of Agriculture, Forest Service, Pacific Northwest Research Station.
+</div>
+<div id="ref-mcgarigal2009" class="csl-entry" role="listitem">
+McGarigal, Kevin, Sermin Tagil, and Samuel A Cushman. 2009. <span>“Surface Metrics: An Alternative to Patch Metrics for the Quantification of Landscape Structure.”</span> <em>Landscape Ecology</em> 24: 433–50.
 </div>
 </div>
 </section>
@@ -623,7 +628,18 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
     return false;
   }
-  const onCopySuccess = function(e) {
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
     // button target
     const button = e.trigger;
     // don't keep focus
@@ -655,29 +671,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }, 1000);
     // clear code selection
     e.clearSelection();
-  }
-  const getTextToCopy = function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
-        }
-      }
-      return codeEl.innerText;
-  }
-  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
-    text: getTextToCopy
   });
-  clipboard.on('success', onCopySuccess);
-  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
-    // For code content inside modals, clipBoardJS needs to be initialized with a container option
-    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
-    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
-      text: getTextToCopy,
-      container: window.document.getElementById('quarto-embedded-source-code-modal')
-    });
-    clipboardModal.on('success', onCopySuccess);
-  }
     var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
     var mailtoRegex = new RegExp(/^mailto:/);
       var filterRegex = new RegExp('/' + window.location.host + '/');
@@ -685,7 +679,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
     }
     // Inspect non-navigation links and adorn them if external
- 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
     for (var i=0; i<links.length; i++) {
       const link = links[i];
       if (!isInternal(link.href)) {
